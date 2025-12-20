@@ -1,6 +1,6 @@
 package com.hahn.projectmanager.controller;
 
-import com.hahn.projectmanager.dto.RegisterRequest;
+import com.hahn.projectmanager.dto.auth.RegisterRequest;
 import com.hahn.projectmanager.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

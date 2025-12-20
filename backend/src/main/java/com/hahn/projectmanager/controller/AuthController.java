@@ -1,7 +1,7 @@
 package com.hahn.projectmanager.controller;
 
-import com.hahn.projectmanager.dto.AuthResponse;
-import com.hahn.projectmanager.dto.LoginRequest;
+import com.hahn.projectmanager.dto.auth.AuthResponse;
+import com.hahn.projectmanager.dto.auth.LoginRequest;
 import com.hahn.projectmanager.security.JwtService;
 import com.hahn.projectmanager.service.AuthService;
 import jakarta.servlet.http.Cookie;

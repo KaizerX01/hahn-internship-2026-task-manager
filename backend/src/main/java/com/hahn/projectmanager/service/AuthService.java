@@ -1,6 +1,6 @@
 package com.hahn.projectmanager.service;
 
-import com.hahn.projectmanager.dto.LoginRequest;
+import com.hahn.projectmanager.dto.auth.LoginRequest;
 import com.hahn.projectmanager.entity.User;
 import com.hahn.projectmanager.exception.InvalidCredentialsException;
 import com.hahn.projectmanager.repository.UserRepository;

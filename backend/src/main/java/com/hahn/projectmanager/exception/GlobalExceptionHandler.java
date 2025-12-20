@@ -7,19 +7,21 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    /* =========================
+       AUTH / USER
+       ========================= */
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ApiError> handleEmailExists(
             EmailAlreadyExistsException ex,
             HttpServletRequest request
     ) {
-        return buildError(
+        return build(
                 HttpStatus.CONFLICT,
                 ErrorCode.CONFLICT,
                 ex.getMessage(),
@@ -32,13 +34,60 @@ public class GlobalExceptionHandler {
             InvalidCredentialsException ex,
             HttpServletRequest request
     ) {
-        return buildError(
+        return build(
                 HttpStatus.UNAUTHORIZED,
                 ErrorCode.AUTHENTICATION_FAILED,
                 ex.getMessage(),
                 request
         );
     }
+
+    /* =========================
+       PROJECT / TASK
+       ========================= */
+
+    @ExceptionHandler(ProjectNotFoundException.class)
+    public ResponseEntity<ApiError> handleProjectNotFound(
+            ProjectNotFoundException ex,
+            HttpServletRequest request
+    ) {
+        return build(
+                HttpStatus.NOT_FOUND,
+                ErrorCode.PROJECT_NOT_FOUND,
+                ex.getMessage(),
+                request
+        );
+    }
+
+    @ExceptionHandler(TaskNotFoundException.class)
+    public ResponseEntity<ApiError> handleTaskNotFound(
+            TaskNotFoundException ex,
+            HttpServletRequest request
+    ) {
+        return build(
+                HttpStatus.NOT_FOUND,
+                ErrorCode.TASK_NOT_FOUND,
+                ex.getMessage(),
+                request
+        );
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiError> handleAccessDenied(
+            AccessDeniedException ex,
+            HttpServletRequest request
+    ) {
+        return build(
+                HttpStatus.FORBIDDEN,
+                ErrorCode.ACCESS_DENIED,
+                ex.getMessage(),
+                request
+        );
+    }
+
+    /* =========================
+       VALIDATION
+       ========================= */
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(
@@ -52,7 +101,7 @@ public class GlobalExceptionHandler {
                 .findFirst()
                 .orElse("Validation error");
 
-        return buildError(
+        return build(
                 HttpStatus.BAD_REQUEST,
                 ErrorCode.VALIDATION_ERROR,
                 message,
@@ -60,25 +109,16 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiError> handleNotFound(
-            ResourceNotFoundException ex,
-            HttpServletRequest request
-    ) {
-        return buildError(
-                HttpStatus.NOT_FOUND,
-                ErrorCode.RESOURCE_NOT_FOUND,
-                ex.getMessage(),
-                request
-        );
-    }
+    /* =========================
+       FALLBACK
+       ========================= */
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneric(
             Exception ex,
             HttpServletRequest request
     ) {
-        return buildError(
+        return build(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 ErrorCode.INTERNAL_ERROR,
                 "Unexpected error occurred",
@@ -86,7 +126,11 @@ public class GlobalExceptionHandler {
         );
     }
 
-    private ResponseEntity<ApiError> buildError(
+    /* =========================
+       BUILDER
+       ========================= */
+
+    private ResponseEntity<ApiError> build(
             HttpStatus status,
             ErrorCode code,
             String message,

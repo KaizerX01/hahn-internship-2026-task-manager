@@ -1,4 +1,4 @@
-package com.hahn.projectmanager.dto;
+package com.hahn.projectmanager.dto.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

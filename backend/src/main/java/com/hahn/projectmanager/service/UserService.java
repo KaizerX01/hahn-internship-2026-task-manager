@@ -1,6 +1,6 @@
 package com.hahn.projectmanager.service;
 
-import com.hahn.projectmanager.dto.RegisterRequest;
+import com.hahn.projectmanager.dto.auth.RegisterRequest;
 import com.hahn.projectmanager.entity.User;
 import com.hahn.projectmanager.exception.EmailAlreadyExistsException;
 import com.hahn.projectmanager.repository.UserRepository;
