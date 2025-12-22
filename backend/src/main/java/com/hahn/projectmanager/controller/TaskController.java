@@ -6,7 +6,6 @@ import com.hahn.projectmanager.dto.task.UpdateTaskRequest;
 import com.hahn.projectmanager.entity.User;
 import com.hahn.projectmanager.service.TaskService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -17,10 +16,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/projects/{projectId}/tasks")
-@RequiredArgsConstructor
 public class TaskController {
 
     private final TaskService taskService;
+
+    public TaskController(TaskService taskService) {
+        this.taskService = taskService;
+    }
 
     /**
      * List all tasks for a project with optional filters

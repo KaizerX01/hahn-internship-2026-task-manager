@@ -9,7 +9,6 @@ import com.hahn.projectmanager.entity.User;
 import com.hahn.projectmanager.exception.ProjectNotFoundException;
 import com.hahn.projectmanager.repository.ProjectRepository;
 import com.hahn.projectmanager.repository.TaskRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -17,12 +16,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final TaskRepository taskRepository;
+
+    public ProjectService(ProjectRepository projectRepository, TaskRepository taskRepository) {
+        this.projectRepository = projectRepository;
+        this.taskRepository = taskRepository;
+    }
 
     @Transactional
     public ProjectResponse createProject(CreateProjectRequest request, User user) {

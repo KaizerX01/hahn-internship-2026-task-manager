@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: 'http://localhost:7070/api',
   withCredentials: true, 
   headers: {
     'Content-Type': 'application/json',
@@ -20,7 +20,7 @@ api.interceptors.response.use(
 
       try {
         await axios.post(
-          'http://localhost:8080/api/auth/refresh',
+          'http://localhost:7070/api/auth/refresh',
           {},
           { withCredentials: true }
         );

@@ -11,19 +11,22 @@ import com.hahn.projectmanager.exception.ProjectNotFoundException;
 import com.hahn.projectmanager.exception.TaskNotFoundException;
 import com.hahn.projectmanager.repository.ProjectRepository;
 import com.hahn.projectmanager.repository.TaskRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class TaskService {
 
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
+
+    public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository) {
+        this.taskRepository = taskRepository;
+        this.projectRepository = projectRepository;
+    }
 
     /**
      * Get all tasks for a project with optional filtering
