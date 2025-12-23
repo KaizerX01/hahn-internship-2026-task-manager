@@ -124,6 +124,8 @@ frontend/
 * Three.js used for visual and interactive enhancements
 * Clean separation between UI logic and API calls
 
+---
+
 ## Testing
 
 ### Backend Unit Tests
@@ -135,17 +137,20 @@ The backend is covered with unit tests using:
 * **Mockito** – for mocking dependencies in service and repository layers
 * **Testcontainers** – for running PostgreSQL in tests
 
-
-```
-
-
-#### Running Tests
+### Running Tests
 
 From the `backend` directory, run:
 
 ```bash
 mvn test
+```
 
+Key tested components:
+
+* Service layer methods for Projects and Tasks
+* Authentication and user service logic
+* Repository layer using Testcontainers PostgreSQL for realistic testing
+* Edge cases for CRUD operations and progress calculations
 
 ---
 
@@ -198,6 +203,7 @@ npm run dev
 
 Frontend runs on: `http://localhost:5173`
 
+---
 
 ## Optional Enhancements Implemented
 
@@ -206,6 +212,3 @@ Frontend runs on: `http://localhost:5173`
 * Three.js integration
 * Clean architecture principles
 * Modular and maintainable codebase
-
-
-
