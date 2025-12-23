@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: hahn_db
+    environment:
+      POSTGRES_DB: hahn_db
+      POSTGRES_USER: zakaria
+      POSTGRES_PASSWORD: zakaria
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: hahn_backend
+    ports:
+      - "7070:7070"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/hahn_db
+      SPRING_DATASOURCE_USERNAME: zakaria
+      SPRING_DATASOURCE_PASSWORD: zakaria
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    container_name: hahn_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
