@@ -135,6 +135,10 @@ The backend is covered with unit tests using:
 * **Mockito** – for mocking dependencies in service and repository layers
 * **Testcontainers** – for running PostgreSQL in tests
 
+
+```
+
+
 #### Running Tests
 
 From the `backend` directory, run:
