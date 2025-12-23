@@ -124,6 +124,25 @@ frontend/
 * Three.js used for visual and interactive enhancements
 * Clean separation between UI logic and API calls
 
+## Testing
+
+### Backend Unit Tests
+
+The backend is covered with unit tests using:
+
+* **JUnit 5** – for writing and running tests
+* **Spring Boot Test** – for integration and service layer tests
+* **Mockito** – for mocking dependencies in service and repository layers
+* **Testcontainers** – for running PostgreSQL in tests
+
+#### Running Tests
+
+From the `backend` directory, run:
+
+```bash
+mvn test
+
+
 ---
 
 ## How to Run the Project
