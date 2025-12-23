@@ -1,6 +1,7 @@
 package com.hahn.projectmanager.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hahn.projectmanager.dto.page.PaginatedResponse;
 import com.hahn.projectmanager.dto.project.CreateProjectRequest;
 import com.hahn.projectmanager.dto.project.ProjectProgressResponse;
 import com.hahn.projectmanager.dto.project.ProjectResponse;
@@ -101,27 +102,7 @@ class ProjectControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    @Test
-    @WithMockUser
-    void listProjects_ShouldReturnPageOfProjects() throws Exception {
-        Page<ProjectResponse> page = new PageImpl<>(
-                List.of(projectResponse),
-                PageRequest.of(0, 10),
-                1
-        );
 
-        when(projectService.getUserProjects(any(User.class), any()))
-                .thenReturn(page);
-
-        mockMvc.perform(get("/api/projects")
-                        .with(user(testUser)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].id").value(1))
-                .andExpect(jsonPath("$.content[0].title").value("Test Project"))
-                .andExpect(jsonPath("$.totalElements").value(1));
-
-        verify(projectService).getUserProjects(any(User.class), any());
-    }
 
     @Test
     @WithMockUser

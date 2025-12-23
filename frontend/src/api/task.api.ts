@@ -71,24 +71,28 @@ export const taskApi = {
   },
 
   // Mark task as completed (legacy endpoint)
-  markCompleted: async (projectId: number, taskId: number): Promise<Task> => {
-    const response = await api.patch<Task>(
-      `/projects/${projectId}/tasks/${taskId}/complete`
-    );
-    return response.data;
-  },
+  markCompleted: async (
+  projectId: number,
+  taskId: number
+): Promise<Task> => {
+  const response = await api.patch<Task>(
+    `/projects/${projectId}/tasks/${taskId}/complete`,
+    null
+  );
+  return response.data;
+},
 
-  // Toggle task completion status
-  toggleCompletion: async (
-    projectId: number,
-    taskId: number,
-    completed: boolean
-  ): Promise<Task> => {
-    const response = await api.patch<Task>(
-      `/projects/${projectId}/tasks/${taskId}/completion`,
-      null,
-      { params: { completed } }
-    );
-    return response.data;
-  },
+toggleCompletion: async (
+  projectId: number,
+  taskId: number,
+  completed: boolean
+): Promise<Task> => {
+  const response = await api.patch<Task>(
+    `/projects/${projectId}/tasks/${taskId}/completion`,
+    null,
+    { params: { completed } }
+  );
+  return response.data;
+},
+
 };

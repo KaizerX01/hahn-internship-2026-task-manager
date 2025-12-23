@@ -115,10 +115,11 @@ export const useTasks = (
     fetchTasks();
   };
 
-  const updateFilters = (newFilters: TaskFilters) => {
+  // FIXED: Use useCallback to memoize the function
+  const updateFilters = useCallback((newFilters: TaskFilters) => {
     setFilters(newFilters);
     setPage(0); // Reset to first page when filters change
-  };
+  }, []);
 
   return {
     tasks,

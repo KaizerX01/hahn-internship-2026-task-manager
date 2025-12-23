@@ -1,9 +1,7 @@
 package com.hahn.projectmanager.service;
 
-import com.hahn.projectmanager.dto.project.CreateProjectRequest;
-import com.hahn.projectmanager.dto.project.ProjectProgressResponse;
-import com.hahn.projectmanager.dto.project.ProjectResponse;
-import com.hahn.projectmanager.dto.project.UpdateProjectRequest;
+import com.hahn.projectmanager.dto.page.PaginatedResponse;
+import com.hahn.projectmanager.dto.project.*;
 import com.hahn.projectmanager.entity.Project;
 import com.hahn.projectmanager.entity.User;
 import com.hahn.projectmanager.exception.ProjectNotFoundException;
@@ -14,6 +12,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -37,18 +39,49 @@ public class ProjectService {
 
         projectRepository.save(project);
 
-        return mapToResponse(project);
+        ProjectTaskCount count = new ProjectTaskCount() {
+            @Override
+            public Long getProjectId() { return project.getId(); }
+            @Override
+            public Long getTotalTasks() { return 0L; }
+            @Override
+            public Long getCompletedTasks() { return 0L; }
+        };
+
+        return mapToResponse(project, count);
     }
 
-    public Page<ProjectResponse> getUserProjects(User user, Pageable pageable) {
-        return projectRepository.findByOwner(user, pageable)
-                .map(this::mapToResponse);
+
+    public PaginatedResponse<ProjectResponse> getUserProjects(User user, Pageable pageable) {
+        Page<Project> projectsPage = projectRepository.findByOwnerWithOwner(user, pageable);
+
+        List<ProjectTaskCount> counts = projectRepository.findTaskCountsByOwner(user);
+        Map<Long, ProjectTaskCount> countsMap = counts.stream()
+                .collect(Collectors.toMap(ProjectTaskCount::getProjectId, c -> c));
+
+        List<ProjectResponse> responses = projectsPage.stream()
+                .map(p -> mapToResponse(p, countsMap.get(p.getId())))
+                .toList();
+
+        return new PaginatedResponse<>(
+                responses,
+                projectsPage.getNumber(),
+                projectsPage.getSize(),
+                projectsPage.getTotalElements(),
+                projectsPage.getTotalPages()
+        );
     }
+
+
 
     public ProjectResponse getProjectById(Long id, User user) {
         Project project = findProjectAndCheckOwnership(id, user);
-        return mapToResponse(project);
+
+        ProjectTaskCount count = projectRepository.findTaskCountByProjectId(id);
+
+        return mapToResponse(project, count);
     }
+
 
     @Transactional
     public ProjectResponse updateProject(Long id, UpdateProjectRequest request, User user) {
@@ -59,8 +92,12 @@ public class ProjectService {
 
         projectRepository.save(project);
 
-        return mapToResponse(project);
+        // Fetch task counts for this project in a single query
+        ProjectTaskCount count = projectRepository.findTaskCountByProjectId(id);
+
+        return mapToResponse(project, count);
     }
+
 
     @Transactional
     public void deleteProject(Long id, User user) {
@@ -95,18 +132,19 @@ public class ProjectService {
         return project;
     }
 
-    private ProjectResponse mapToResponse(Project project) {
-        long total = taskRepository.countByProject(project);
-        long completed = taskRepository.countByProjectAndCompletedTrue(project);
-        int progress = total == 0 ? 0 : (int) ((completed * 100) / total);
+    private ProjectResponse mapToResponse(Project project, ProjectTaskCount count) {
+        int total = count != null ? count.getTotalTasks().intValue() : 0;
+        int completed = count != null ? count.getCompletedTasks().intValue() : 0;
+        int progress = total == 0 ? 0 : (completed * 100) / total;
 
         return new ProjectResponse(
                 project.getId(),
                 project.getTitle(),
                 project.getDescription(),
-                (int) total,
-                (int) completed,
+                total,
+                completed,
                 progress
         );
     }
+
 }

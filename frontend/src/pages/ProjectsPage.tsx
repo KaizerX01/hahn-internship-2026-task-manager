@@ -1,10 +1,188 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as THREE from 'three';
-import { Plus, Search, Filter, MoreVertical, Trash2, Edit, TrendingUp, CheckCircle2, Circle, Clock, Loader2, LogOut, X } from 'lucide-react';
+import { Plus, Search, Filter, MoreVertical, Trash2, Edit, TrendingUp, CheckCircle2, Circle, Clock, LogOut, X } from 'lucide-react';
 import { useProjects } from '../hooks/useProjects';
 import { useAuth } from '../hooks/useAuth';
 import type { Project, CreateProjectRequest } from '../types/project.types';
-
+// ============================================
+// SKELETON LOADING
+// ============================================
+const SkeletonCard: React.FC = () => (
+  <div className="relative bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-6 border border-slate-700/50 overflow-hidden">
+    <div className="relative z-10">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-5 h-5 bg-slate-700 rounded-full animate-pulse" />
+            <div className="h-6 w-48 bg-slate-700 rounded animate-pulse" />
+          </div>
+          <div className="space-y-2">
+            <div className="h-4 w-full bg-slate-700/70 rounded animate-pulse" />
+            <div className="h-4 w-3/4 bg-slate-700/70 rounded animate-pulse" />
+          </div>
+        </div>
+        <div className="w-5 h-5 bg-slate-700 rounded animate-pulse" />
+      </div>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="h-4 w-16 bg-slate-700 rounded animate-pulse" />
+          <div className="h-4 w-12 bg-slate-700 rounded animate-pulse" />
+        </div>
+       
+        <div className="relative h-3 bg-slate-700/50 rounded-full overflow-hidden">
+          <div className="absolute inset-y-0 left-0 w-1/2 bg-slate-600 rounded-full animate-pulse" />
+        </div>
+        <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-slate-700 rounded-full animate-pulse" />
+            <div className="h-4 w-24 bg-slate-700 rounded animate-pulse" />
+          </div>
+          <div className="w-4 h-4 bg-slate-700 rounded animate-pulse" />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+const ThreeBackground: React.FC = () => {
+  const mountRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!mountRef.current) return;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+   
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    mountRef.current.appendChild(renderer.domElement);
+    const particlesGeometry = new THREE.BufferGeometry();
+    const particlesCount = 1000;
+    const posArray = new Float32Array(particlesCount * 3);
+   
+    for (let i = 0; i < particlesCount * 3; i++) {
+      posArray[i] = (Math.random() - 0.5) * 100;
+    }
+   
+    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+   
+    const particlesMaterial = new THREE.PointsMaterial({
+      size: 0.15,
+      color: 0x8b5cf6,
+      transparent: true,
+      opacity: 0.6,
+      blending: THREE.AdditiveBlending
+    });
+   
+    const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+    scene.add(particlesMesh);
+    const shapes: THREE.Mesh[] = [];
+    const geometries = [
+      new THREE.TorusGeometry(2, 0.5, 16, 100),
+      new THREE.OctahedronGeometry(2),
+      new THREE.IcosahedronGeometry(2)
+    ];
+    for (let i = 0; i < 3; i++) {
+      const material = new THREE.MeshPhongMaterial({
+        color: i === 0 ? 0x8b5cf6 : i === 1 ? 0xec4899 : 0x3b82f6,
+        transparent: true,
+        opacity: 0.1,
+        wireframe: true
+      });
+     
+      const mesh = new THREE.Mesh(geometries[i], material);
+      mesh.position.set(
+        (Math.random() - 0.5) * 30,
+        (Math.random() - 0.5) * 30,
+        (Math.random() - 0.5) * 30
+      );
+      shapes.push(mesh);
+      scene.add(mesh);
+    }
+    const light1 = new THREE.PointLight(0x8b5cf6, 2, 100);
+    light1.position.set(10, 10, 10);
+    scene.add(light1);
+    const light2 = new THREE.PointLight(0xec4899, 2, 100);
+    light2.position.set(-10, -10, -10);
+    scene.add(light2);
+    camera.position.z = 30;
+    let mouseX = 0;
+    let mouseY = 0;
+    const onMouseMove = (e: MouseEvent) => {
+      mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+      mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+    };
+    window.addEventListener('mousemove', onMouseMove);
+    const animate = () => {
+      requestAnimationFrame(animate);
+      particlesMesh.rotation.y += 0.001;
+      particlesMesh.rotation.x += 0.0005;
+      shapes.forEach((shape, i) => {
+        shape.rotation.x += 0.001 * (i + 1);
+        shape.rotation.y += 0.002 * (i + 1);
+      });
+      camera.position.x += (mouseX * 5 - camera.position.x) * 0.05;
+      camera.position.y += (mouseY * 5 - camera.position.y) * 0.05;
+      camera.lookAt(scene.position);
+      renderer.render(scene, camera);
+    };
+    animate();
+    const handleResize = () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('resize', handleResize);
+      if (mountRef.current) {
+        mountRef.current.removeChild(renderer.domElement);
+      }
+      renderer.dispose();
+    };
+  }, []);
+  return <div ref={mountRef} className="fixed inset-0 -z-10" />;
+};
+const LoadingSkeleton: React.FC = () => (
+  <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white overflow-hidden">
+    <ThreeBackground />
+   
+    <div className="relative z-10 max-w-7xl mx-auto px-6 py-12">
+      <div className="mb-12">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <div className="h-12 w-64 bg-slate-700 rounded-lg mb-2 animate-pulse" />
+            <div className="h-6 w-48 bg-slate-700/70 rounded animate-pulse" />
+          </div>
+         
+          <div className="flex items-center gap-4">
+            <div className="h-14 w-40 bg-slate-700 rounded-xl animate-pulse" />
+            <div className="h-14 w-14 bg-slate-700 rounded-xl animate-pulse" />
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <div className="flex-1 h-14 bg-slate-800/50 border border-slate-700/50 rounded-xl animate-pulse" />
+          <div className="w-32 h-14 bg-slate-800/50 border border-slate-700/50 rounded-xl animate-pulse" />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="relative">
+            <div className="relative bg-slate-800/50 backdrop-blur-xl rounded-xl p-6 border border-slate-700/50">
+              <div className="h-4 w-24 bg-slate-700 rounded mb-2 animate-pulse" />
+              <div className="h-10 w-16 bg-slate-700 rounded animate-pulse" />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {[...Array(6)].map((_, i) => (
+          <SkeletonCard key={i} />
+        ))}
+      </div>
+    </div>
+  </div>
+);
 // ============================================
 // CREATE PROJECT MODAL
 // ============================================
@@ -13,24 +191,20 @@ interface CreateProjectModalProps {
   onClose: () => void;
   onCreate: (data: CreateProjectRequest) => Promise<void>;
 }
-
 const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose, onCreate }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const handleSubmit = async () => {
     console.log('[CREATE MODAL] Submitting with title:', title, 'description:', description);
-    
+   
     if (!title.trim()) {
       setError('Title is required');
       return;
     }
-
     setIsSubmitting(true);
     setError(null);
-
     try {
       await onCreate({
         title: title.trim(),
@@ -47,13 +221,11 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
       setIsSubmitting(false);
     }
   };
-
   if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      
+     
       <div className="relative w-full max-w-md bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl border border-slate-700 shadow-2xl">
         <div className="flex items-center justify-between p-6 border-b border-slate-700">
           <h2 className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">
@@ -63,14 +235,12 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
             <X className="w-5 h-5 text-slate-400" />
           </button>
         </div>
-
         <div className="p-6 space-y-4">
           {error && (
             <div className="p-3 bg-rose-500/10 border border-rose-500/50 rounded-lg text-rose-400 text-sm">
               {error}
             </div>
           )}
-
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-slate-300 mb-2">
               Project Title *
@@ -86,7 +256,6 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
               disabled={isSubmitting}
             />
           </div>
-
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-slate-300 mb-2">
               Description (optional)
@@ -101,7 +270,6 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
               disabled={isSubmitting}
             />
           </div>
-
           <div className="flex gap-3 pt-4">
             <button
               onClick={onClose}
@@ -123,7 +291,6 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
     </div>
   );
 };
-
 // ============================================
 // PROJECT CARD
 // ============================================
@@ -133,11 +300,9 @@ interface ProjectCardProps {
   onDelete: (project: Project) => void;
   onClick: (project: Project) => void;
 }
-
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete, onClick }) => {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -147,7 +312,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete, on
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
   const getProgressColor = (percentage: number): string => {
     if (percentage === 100) return 'from-emerald-500 to-teal-500';
     if (percentage >= 75) return 'from-blue-500 to-cyan-500';
@@ -155,21 +319,19 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete, on
     if (percentage >= 25) return 'from-amber-500 to-orange-500';
     return 'from-rose-500 to-pink-500';
   };
-
   const getStatusIcon = (percentage: number) => {
     if (percentage === 100) return <CheckCircle2 className="w-5 h-5 text-emerald-400" />;
     if (percentage >= 50) return <Clock className="w-5 h-5 text-blue-400" />;
     return <Circle className="w-5 h-5 text-amber-400" />;
   };
-
   return (
-    <div 
+    <div
       className="group relative bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-xl rounded-2xl p-6 border border-slate-700/50 hover:border-violet-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-violet-500/20 cursor-pointer overflow-hidden"
       onClick={() => onClick(project)}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-violet-500/0 via-purple-500/0 to-pink-500/0 group-hover:from-violet-500/10 group-hover:via-purple-500/5 group-hover:to-pink-500/10 transition-all duration-700 rounded-2xl" />
       <div className="absolute -inset-1 bg-gradient-to-r from-violet-600 to-pink-600 rounded-2xl blur-xl opacity-0 group-hover:opacity-20 transition-opacity duration-700" />
-      
+     
       <div className="relative z-10">
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
@@ -183,7 +345,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete, on
               {project.description || 'No description'}
             </p>
           </div>
-          
+         
           <div className="relative" ref={menuRef}>
             <button
               onClick={(e) => {
@@ -194,7 +356,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete, on
             >
               <MoreVertical className="w-5 h-5 text-slate-400" />
             </button>
-            
+           
             {showMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50">
                 <button
@@ -223,22 +385,20 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete, on
             )}
           </div>
         </div>
-
         <div className="space-y-3">
           <div className="flex items-center justify-between text-sm">
             <span className="text-slate-400">Progress</span>
             <span className="text-white font-bold">{project.progressPercentage}%</span>
           </div>
-          
+         
           <div className="relative h-3 bg-slate-700/50 rounded-full overflow-hidden">
-            <div 
+            <div
               className={`absolute inset-y-0 left-0 bg-gradient-to-r ${getProgressColor(project.progressPercentage)} rounded-full transition-all duration-1000 ease-out shadow-lg`}
               style={{ width: `${project.progressPercentage}%` }}
             >
               <div className="absolute inset-0 bg-white/20 animate-pulse" />
             </div>
           </div>
-
           <div className="flex items-center justify-between pt-2">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
@@ -253,157 +413,28 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete, on
     </div>
   );
 };
-
-// ============================================
-// THREE.JS BACKGROUND
-// ============================================
-const ThreeBackground: React.FC = () => {
-  const mountRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!mountRef.current) return;
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    mountRef.current.appendChild(renderer.domElement);
-
-    const particlesGeometry = new THREE.BufferGeometry();
-    const particlesCount = 1000;
-    const posArray = new Float32Array(particlesCount * 3);
-    
-    for (let i = 0; i < particlesCount * 3; i++) {
-      posArray[i] = (Math.random() - 0.5) * 100;
-    }
-    
-    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-    
-    const particlesMaterial = new THREE.PointsMaterial({
-      size: 0.15,
-      color: 0x8b5cf6,
-      transparent: true,
-      opacity: 0.6,
-      blending: THREE.AdditiveBlending
-    });
-    
-    const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
-    scene.add(particlesMesh);
-
-    const shapes: THREE.Mesh[] = [];
-    const geometries = [
-      new THREE.TorusGeometry(2, 0.5, 16, 100),
-      new THREE.OctahedronGeometry(2),
-      new THREE.IcosahedronGeometry(2)
-    ];
-
-    for (let i = 0; i < 3; i++) {
-      const material = new THREE.MeshPhongMaterial({
-        color: i === 0 ? 0x8b5cf6 : i === 1 ? 0xec4899 : 0x3b82f6,
-        transparent: true,
-        opacity: 0.1,
-        wireframe: true
-      });
-      
-      const mesh = new THREE.Mesh(geometries[i], material);
-      mesh.position.set(
-        (Math.random() - 0.5) * 30,
-        (Math.random() - 0.5) * 30,
-        (Math.random() - 0.5) * 30
-      );
-      shapes.push(mesh);
-      scene.add(mesh);
-    }
-
-    const light1 = new THREE.PointLight(0x8b5cf6, 2, 100);
-    light1.position.set(10, 10, 10);
-    scene.add(light1);
-
-    const light2 = new THREE.PointLight(0xec4899, 2, 100);
-    light2.position.set(-10, -10, -10);
-    scene.add(light2);
-
-    camera.position.z = 30;
-
-    let mouseX = 0;
-    let mouseY = 0;
-
-    const onMouseMove = (e: MouseEvent) => {
-      mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-      mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
-    };
-
-    window.addEventListener('mousemove', onMouseMove);
-
-    const animate = () => {
-      requestAnimationFrame(animate);
-
-      particlesMesh.rotation.y += 0.001;
-      particlesMesh.rotation.x += 0.0005;
-
-      shapes.forEach((shape, i) => {
-        shape.rotation.x += 0.001 * (i + 1);
-        shape.rotation.y += 0.002 * (i + 1);
-      });
-
-      camera.position.x += (mouseX * 5 - camera.position.x) * 0.05;
-      camera.position.y += (mouseY * 5 - camera.position.y) * 0.05;
-      camera.lookAt(scene.position);
-
-      renderer.render(scene, camera);
-    };
-
-    animate();
-
-    const handleResize = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('resize', handleResize);
-      if (mountRef.current) {
-        mountRef.current.removeChild(renderer.domElement);
-      }
-      renderer.dispose();
-    };
-  }, []);
-
-  return <div ref={mountRef} className="fixed inset-0 -z-10" />;
-};
-
 // ============================================
 // MAIN PROJECTS PAGE
 // ============================================
 const ProjectsPage: React.FC = () => {
+  const navigate = useNavigate();
   const { projects, loading, error, createProject, deleteProject } = useProjects();
   const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
-
   console.log('[PROJECTS PAGE] Render - projects count:', projects.length, 'loading:', loading, 'error:', error);
   console.log('[PROJECTS PAGE] Projects data:', projects);
-
   const filteredProjects = projects.filter(p =>
     p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
-
   const handleCreateProject = async (data: CreateProjectRequest): Promise<void> => {
     console.log('[PROJECTS PAGE] handleCreateProject called with:', data);
     await createProject(data);
   };
-
   const handleEditProject = (project: Project): void => {
     console.log('[PROJECTS PAGE] Edit project:', project);
   };
-
   const handleDeleteProject = async (project: Project): Promise<void> => {
     if (window.confirm(`Are you sure you want to delete "${project.title}"?`)) {
       try {
@@ -413,11 +444,10 @@ const ProjectsPage: React.FC = () => {
       }
     }
   };
-
   const handleProjectClick = (project: Project): void => {
     console.log('[PROJECTS PAGE] Navigate to project:', project);
+    navigate(`/projects/${project.id}/tasks`);
   };
-
   const handleLogout = async (): Promise<void> => {
     try {
       await logout();
@@ -425,18 +455,9 @@ const ProjectsPage: React.FC = () => {
       console.error('Logout failed:', err);
     }
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-violet-500 animate-spin mx-auto mb-4" />
-          <p className="text-slate-400">Loading projects...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
-
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
@@ -452,17 +473,16 @@ const ProjectsPage: React.FC = () => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white overflow-hidden">
       <ThreeBackground />
-      
+     
       <CreateProjectModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onCreate={handleCreateProject}
       />
-      
+     
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-12">
         <div className="mb-12">
           <div className="flex items-center justify-between mb-8">
@@ -474,7 +494,7 @@ const ProjectsPage: React.FC = () => {
                 Welcome back, {user?.email || 'User'}
               </p>
             </div>
-            
+           
             <div className="flex items-center gap-4">
               <button
                 onClick={() => {
@@ -487,7 +507,7 @@ const ProjectsPage: React.FC = () => {
                 <Plus className="w-5 h-5 relative z-10" />
                 <span className="relative z-10">New Project</span>
               </button>
-              
+             
               <button
                 onClick={handleLogout}
                 className="p-4 bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-xl hover:border-rose-500/50 hover:bg-rose-500/10 transition-all duration-300"
@@ -497,7 +517,6 @@ const ProjectsPage: React.FC = () => {
               </button>
             </div>
           </div>
-
           <div className="flex gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -509,14 +528,13 @@ const ProjectsPage: React.FC = () => {
                 className="w-full pl-12 pr-4 py-4 bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 transition-all duration-300"
               />
             </div>
-            
+           
             <button className="px-6 py-4 bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-xl hover:border-violet-500/50 transition-all duration-300 flex items-center gap-3">
               <Filter className="w-5 h-5" />
               <span>Filter</span>
             </button>
           </div>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
           {[
             { label: 'Total Projects', value: projects.length, color: 'from-violet-500 to-purple-500' },
@@ -535,7 +553,6 @@ const ProjectsPage: React.FC = () => {
             </div>
           ))}
         </div>
-
         {filteredProjects.length === 0 ? (
           <div className="text-center py-20">
             <div className="w-32 h-32 mx-auto mb-6 bg-slate-800/50 rounded-full flex items-center justify-center">

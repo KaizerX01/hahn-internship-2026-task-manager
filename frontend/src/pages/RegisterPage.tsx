@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type {FormEvent} from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { ThreeBackground } from '../components/ui/ThreeBackground';
+import  ThreeBackground from '../components/ui/ThreeBackground';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { 

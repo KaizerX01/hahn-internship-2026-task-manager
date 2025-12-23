@@ -1,5 +1,6 @@
 package com.hahn.projectmanager.controller;
 
+import com.hahn.projectmanager.dto.page.PaginatedResponse;
 import com.hahn.projectmanager.dto.project.CreateProjectRequest;
 import com.hahn.projectmanager.dto.project.ProjectProgressResponse;
 import com.hahn.projectmanager.dto.project.ProjectResponse;
@@ -41,7 +42,7 @@ public class ProjectController {
      * List all projects for authenticated user (with pagination)
      */
     @GetMapping
-    public ResponseEntity<Page<ProjectResponse>> listProjects(
+    public ResponseEntity<PaginatedResponse<ProjectResponse>> listProjects(
             @AuthenticationPrincipal User user,
             @PageableDefault(size = 10, sort = "id") Pageable pageable
     ) {
